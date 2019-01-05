@@ -19,28 +19,28 @@ module.exports = {
         //   }
         // }
         '/administrator': {
-            target: 'http://127.0.0.1:3000',
+            target: 'http://127.0.0.1:80',
             changeOrigin: true,
             pathRewrite: {
               '^/administrator': '/administrator'
             }
         },
         '/department': {
-            target: 'http://127.0.0.1:3000',
+            target: 'http://127.0.0.1:80',
             changeOrigin: true,
             pathRewrite: {
               '^/department': '/department'
             }
         },
         '/user': {
-            target: 'http://127.0.0.1:3000',
+            target: 'http://127.0.0.1:80',
             changeOrigin: true,
             pathRewrite: {
               '^/user': '/user'
             }
         },
         '/initiativeMsg': {
-            target: 'http://127.0.0.1:3000',
+            target: 'http://127.0.0.1:80',
             changeOrigin: true,
             pathRewrite: {
               '^/initiativeMsg': '/initiativeMsg'
