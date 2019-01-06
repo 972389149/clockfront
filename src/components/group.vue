@@ -26,9 +26,9 @@
     		  </el-col>
     		</el-row>
     	</el-col>
-  	  <el-col :span="24" v-loading="loading" v-if='dataExist'>
-  	  	<el-row style='margin: 10px 10px 0 10px'>
-    		  <el-col :span="5" v-for='(dep,$index) in department' style='margin: 10px 10px 0 10px'>
+  	  <el-col :span="24" v-if='dataExist' v-loading="loading" element-loading-text="拼命加载中..."  element-loading-spinner="el-icon-loading" style='min-height: 595px;'>
+  	  	<el-row style='margin: 10px 10px 0 10px' >
+    		  <el-col :span="5" v-for='(dep,$index) in department' style='margin: 10px 10px 0 10px' >
     		    <el-card :body-style="{ padding: '0px' }" shadow="hover" style='border-color: #e6e6e6;cursor: pointer;'>
     		      <img src="../../static/img/group.jpg" class="image" @click='open(dep.deptId,$index)'>
     		      <div style="padding: 14px;" @click='open(dep.deptId,$index)'>
@@ -50,7 +50,7 @@
       <el-col :span='24' v-if='!dataExist' style='margin-top: 15px;'>
         <span  style='font-size: 20px;letter-spacing: 7px;font-weight: bold;'>没有部门</span>
       </el-col>
-      <el-col :span='24' style='margin-top: 50px;'>
+      <el-col :span='24' style='margin-top: 10px;margin-bottom: 20px;float: left;'>
         <el-pagination
           background
           layout="prev, pager, next"
@@ -153,7 +153,7 @@ export default {
               if(deptArr.length <= 8){
                 this.pageSize = 10;
               }else{
-                this.pageSize = Math.floor(deptArr.length / 8) * 10 + 10;
+                this.pageSize = Math.floor(deptArr.length % 8) == 0?Math.floor(deptArr.length / 8) * 10:Math.floor(deptArr.length / 8) * 10 + 10;
               }
 
               if(deptArr.length <= 8){
@@ -250,8 +250,46 @@ export default {
         this.loading = false;
       }.bind(this));
     },
-    submitEdit(){
-      alert(this.form.id);
+    submitEdit (){
+      this.department_.every((item)=>{
+          return item.deptName != this.form.name && this.checkNull();
+        })==true?this.submitEdit_():this.$message.error('部门信息错误，请检查后再次输入！');
+    },
+    submitEdit_ (){
+      axios.post('department/editGroup',{
+        'name': this.form.name,
+        'clockDate': {
+          'date': this.form.date,
+          'duration': this.form.date.length,
+          'type': 1,
+        },
+        'clockDayTimes': 1,
+        'clockList': [{
+          'clockStart': this.form.startTime,
+          'clockEnd': this.form.endTime
+        }],
+        'address': [this.form.address,0,0],
+        'id': this.form.id
+      }).then(function(res){
+        if(res.data.status == '1'){
+          this.$message({
+              message: '编辑部门成功',
+              type: 'success'
+            });
+        }else{
+          this.$message.error('编辑部门失败，请联系管理员。');
+        }
+      }.bind(this)).catch(function(err){
+        this.$message.error('服务器异常，请联系管理员。');
+      }.bind(this));
+
+      this.dialogFormVisibleAdd = false;
+      this.pageSize = 10;
+      this.getGroup();
+      this.bread[2] = '查看';
+      this.view_ = true;
+      this.delete_ = false;
+      this.edit_ = false;
     },
   	open (key,index){
       this.form = {
@@ -307,6 +345,8 @@ export default {
 		            type: 'success',
 		            message: '删除成功!'
 		          });
+
+              this.pageSize = 10;
           		this.getGroup();
           	}else{
           		this.$message.error('删除部门失败，请联系管理员。');
@@ -327,10 +367,20 @@ export default {
   	},
     submit_ (type){
       if(type == 0){
-        this.submitAdd();
+        this.department_.every((item)=>{
+          return item.deptName != this.form.name && this.checkNull();
+        })==true?this.submitAdd():this.$message.error('部门信息错误，请检查后再次输入！');
       }else{
         this.submitEdit();
       }
+    },
+    checkNull (){
+      for(let i in this.form){
+        if(i != 'id' && this.form[i] == ''){
+          return false;
+        }
+      }
+      return true;
     },
   	submitAdd (){
   		axios.post('department/addGroup',{
@@ -371,13 +421,17 @@ export default {
   	},
     sizeChange (index){
         this.department = [];
-        for(let i=0; i<8; i++){
-          if(this.department_[i+(index-1)*8] != undefined){
-            this.department[i] = this.department_[i+(index-1)*8];
-          }else{
-            break;
+        this.loading = true;
+        setTimeout(()=>{
+          for(let i=0; i<8; i++){
+            if(this.department_[i+(index-1)*8] != undefined){
+              this.department[i] = this.department_[i+(index-1)*8];
+            }else{
+              break;
+            }
           }
-        }
+          this.loading = false;
+        },500);
     }
   },
   mounted (){

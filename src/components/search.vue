@@ -44,12 +44,15 @@
 			<el-tag>{{_search}}</el-tag>
 		</el-col>
 	</el-row>
-	<el-row style='margin: 10px 10px 0 10px' v-if='dataExist'>
+	<el-row style='margin: 10px 10px 0 10px' v-if='dataExist' v-loading='loading'>
 		<el-col :span="5" v-for='item in userList' style='margin: 10px 10px 0 10px'>
-		    <el-card :body-style="{ padding: '0px' }" shadow="hover" style='border-color: #e6e6e6;'>
-		      <img src="../../static/img/user.jpg" class="image">
+		    <el-card :body-style="{ padding: '0px' }" shadow="hover" :class='item.sex=="男"?sexMale:sexFemale'>
+		      <img :src="item.headImg" class="image">
 		      <div style="padding: 14px;">
-		        <span style='font-weight: bold;letter-spacing:5px '>{{item.name}}</span>
+		        <span style='font-weight: bold;letter-spacing:3px;'>
+              <img :src='item.sex=="男"?"../../static/img/male.png":"../../static/img/female.png"' style="position: relative;top: 10px;left: 0px;">
+              <span  style="">{{item.name}}</span>
+            </span>
 		        <div class="bottom clearfix" style='line-height: 18px;letter-spacing:2px'>
 		          <time class="time">微信名称：{{item.nickName}}</time><br>
 		          <time class="time">手机：{{item.phone}}</time><br>
@@ -65,12 +68,20 @@
 	<el-row v-if='!dataExist'>
 		<el-col :span='24' style='margin-top: 15px;'>
 			<span>
-				<span style='font-size: 20px;letter-spacing: 7px;font-weight: bold;'>没有数据</span>
+				<el-tag type="info" size="medium">没 有 数 据</el-tag>
 				<br>
-				<span style='font-size: 12px;color: #606266'>搜索支持 “模糊查询”</span>
+				<!-- <span style='font-size: 12px;color: #606266'>搜索支持 “模糊查询”</span> -->
 			</span>
 		</el-col>
 	</el-row>
+  <el-col :span='24' style='margin-top: 50px;'>
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="pageSize"
+          @current-change='sizeChange'>
+        </el-pagination>
+      </el-col>
 
 	<!-- 点击添加弹开的dialog -->
 	<el-dialog title="选择一个部门" :visible.sync="dialogFormVisible" width="35%"> 
@@ -101,6 +112,7 @@ export default {
       search: '',
       _search: '',
       userList: [],
+      userList_: [],
       dataExist: false,
       groupList: [],
       user: {},
@@ -109,7 +121,10 @@ export default {
   	    id: '',
         name: ''
   	  },
-      formLabelWidth: '120px'
+      formLabelWidth: '120px',
+      sexMale: 'male',
+      sexFemale: 'female',
+      pageSize: 10
     }
   },
   methods:{
@@ -129,17 +144,28 @@ export default {
   					}
   				}).then(function(res){
   					if(res.data.status == '1'){
-  						this.userList = res.data.result;
-  						for(var i=0; i<this.userList.length; i++){
-  							if(this.userList[i].sex == 'male'){
-  								this.userList[i].sex = '男';
+  						this.userList_ = res.data.result;
+  						for(var i=0; i<this.userList_.length; i++){
+  							if(this.userList_[i].sex == 'male'){
+  								this.userList_[i].sex = '男';
   							}else{
-  								this.userList[i].sex = '女';
+  								this.userList_[i].sex = '女';
   							}
   						}
   						if(res.data.result.length == 0){
   							this.$message.error(`搜索不到此用户！`);
   						}
+              if(this.userList_.length <= 4){
+                this.pageSize = 10;
+                this.userList = this.userList_;
+              }else{
+                this.userList = [];
+                this.pageSize = this.userList_.length%4 == 0?Math.floor(this.userList_.length/4)*10:Math.floor(this.userList_.length/4)*10 + 10;
+                for(let i=0;i<4;i++){
+                  this.userList.push(this.userList_[i]);
+                }
+              }
+
   					}else{
   						this.$message.error(`搜索失败，${res.data.msg}！`);
   					}
@@ -207,8 +233,8 @@ export default {
               message: '邀请成功，等待用户同意加入',
               type: 'success'
             });
-          }else{
-            this.$message.error(`添加异常`);
+          }else if(res.data.status == '0'){
+            this.$message.error(`已经邀请过该用户啦！`);
           }
         }.bind(this)).catch(function(err){
           this.$message.error(`服务器异常，请联系管理员。`);
@@ -217,7 +243,20 @@ export default {
   		this.groupList = [];
   		this.form.id = '';
   		this.dialogFormVisible = false;
-  	}
+  	},
+    sizeChange (index){
+      if(index*4>this.userList_.length){
+        this.userList = [];
+        for(let i=(index-1)*4;i<this.userList_.length;i++){
+          this.userList.push(this.userList_[i]);
+        }
+      }else{
+        this.userList = [];
+        for(let i=(index-1)*4;i<(index-1)*4+4;i++){
+          this.userList.push(this.userList_[i]);
+        }
+      }
+    }
   },
   watch: {
   	'userList': function(newVal){
@@ -279,5 +318,15 @@ export default {
 }
 .input-with-select .el-input-group__prepend {
 	background-color: #fff;
+}
+.male{
+  /*background-color: #EFF4FA;*/
+  /*border-color: #EFF4FA;*/
+  border: 3px solid #75B9EB;
+}
+.female{
+  /*background-color: #FEE6EE;*/
+  /*border-color: #FEE6EE;*/
+  border: 3px solid #FF3EC9;
 }
 </style>

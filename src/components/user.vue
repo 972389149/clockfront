@@ -24,7 +24,7 @@
   		  </el-col>
   		</el-row>
   	  </el-col>
-  	  <el-col :span="24" v-loading="loading" v-if='dataExist'>
+  	  <el-col :span="24" v-if='dataExist' style='min-height: 595px;' v-loading="loading" element-loading-text="拼命加载中..."  element-loading-spinner="el-icon-loading">
   	  	<el-row style='margin: 10px 10px 0 10px' v-if='turnInto'>
     		  <el-col :span="5" v-for='(dep,$index) in department' style='margin: 10px 10px 0 10px'  >
     		    <el-card :body-style="{ padding: '0px' }" style='border-color: #e6e6e6;cursor: pointer;'>
@@ -33,8 +33,6 @@
     		        <span>{{dep.deptName}}</span>
     		        <div class="bottom clearfix">
     		          <time class="time">管理员 : {{dep.name}}</time>
-    		          <!-- <br><br> -->
-    		          <!-- <time class="time">部门人数： {{dep.quantity}}</time> -->
     		          <br>
     		          <span style='float: right;' v-if='view_'><i class="el-icon-rank"></i></span>
     		        </div>
@@ -89,12 +87,14 @@
       <el-col :span='24' v-if='!dataExist' style='margin-top: 15px;'>
         <span  style='font-size: 20px;letter-spacing: 7px;font-weight: bold;'>没有成员</span>
       </el-col>
-      <el-col :span='24' style='margin-top: 50px;'>
+      <el-col :span='24' style='margin-top: 10px;margin-bottom: 20px;'>
         <el-pagination
           background
           layout="prev, pager, next"
           :total="pageSize"
-          @current-change='sizeChange'>
+          @current-change='sizeChange'
+          v-if='turnInto'
+          >
         </el-pagination>
       </el-col>
     </el-row>
@@ -205,7 +205,7 @@ export default {
               if(deptArr.length <= 8){
                 this.pageSize = 10;
               }else{
-                this.pageSize = Math.floor(deptArr.length / 8) * 10 + 10;
+                this.pageSize = Math.floor(deptArr.length % 8) == 0?Math.floor(deptArr.length / 8) * 10:Math.floor(deptArr.length / 8) * 10 + 10;
               }
 
               if(deptArr.length <= 8){
@@ -237,13 +237,17 @@ export default {
     },
     sizeChange (index){
         this.department = [];
-        for(let i=0; i<8; i++){
-          if(this.department_[i+(index-1)*8] != undefined){
-            this.department[i] = this.department_[i+(index-1)*8];
-          }else{
-            break;
+        this.loading = true;
+        setTimeout(()=>{
+          for(let i=0; i<8; i++){
+            if(this.department_[i+(index-1)*8] != undefined){
+              this.department[i] = this.department_[i+(index-1)*8];
+            }else{
+              break;
+            }
           }
-        }
+          this.loading = false;
+        },500);
     }
   },
   mounted (){

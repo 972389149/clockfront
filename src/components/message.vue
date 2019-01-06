@@ -19,7 +19,9 @@
     		  		<div class='control' style="float: right;">
 		  				<el-radio-group v-model="treat">
 					      <el-radio-button label="已处理" ></el-radio-button>
-					      <el-radio-button label="待处理" ></el-radio-button>
+                <el-badge :value="tableData2.length">
+					       <el-radio-button label="待处理" :value="12" ></el-radio-button>
+                </el-badge>
 					    </el-radio-group>
 		  			</div>
     		  	</div>
