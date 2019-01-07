@@ -45,7 +45,7 @@
 		</el-col>
 	</el-row>
 	<el-row style='margin: 10px 10px 0 10px' v-if='dataExist' v-loading='loading'>
-		<el-col :span="5" v-for='item in userList' style='margin: 10px 10px 0 10px'>
+		<el-col :span="5" v-for='item in userList' style='margin: 10px 10px 0 10px' :key='item._id'>
 		    <el-card :body-style="{ padding: '0px' }" shadow="hover" :class='item.sex=="男"?sexMale:sexFemale'>
 		      <img :src="item.headImg" class="image">
 		      <div style="padding: 14px;">
