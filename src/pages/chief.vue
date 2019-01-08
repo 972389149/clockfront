@@ -29,7 +29,6 @@
 			  <el-menu-item index="/chief/personCenter"><i class="el-icon-tickets"></i>个人中心</el-menu-item>
 			  <el-menu-item index="/chief/about"><i class="el-icon-more"></i>关于</el-menu-item>
 			</el-menu>
-        <iframe src="../../static/clock/index.html" scrolling="no" frameborder="0" width="100%" height="200px"></iframe>
       	</div>
       </el-col>
       <el-col :span='20'>

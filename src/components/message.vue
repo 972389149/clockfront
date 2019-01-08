@@ -31,9 +31,10 @@
 	    <el-col :span="24" v-if='showTreat'>
 	    	<div>
 	    		<el-table
-				    :data="tableData1"
+				    :data="tableData1_"
 				    border
-				    style="width: 100%">
+				    style="width: 100%"
+            v-loading='loading1'>
 				    <el-table-column
 				      prop="date"
 				      label="日期"
@@ -72,15 +73,24 @@
     				    </el-button>
 				      </template>
 				    </el-table-column>
-				</el-table>	
+				  </el-table>	
+          <el-col :span='24' style='margin-top: 10px;margin-bottom: 20px;float: left;'>
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="page1"
+              @current-change='sizeChange1'>
+            </el-pagination>
+          </el-col>
 	    	</div>
 	    </el-col>
 	    <el-col :span="24" v-if='!showTreat'>
 	    	<div>
 	    		<el-table
-				    :data="tableData2"
+				    :data="tableData2_"
 				    border
-				    style="width: 100%">
+				    style="width: 100%"
+            v-loading='loading2'>
 				    <el-table-column
 				      prop="date"
 				      label="日期"
@@ -121,6 +131,14 @@
 				    </el-table-column>
 				</el-table>	
 	    	</div>
+        <el-col :span='24' style='margin-top: 10px;margin-bottom: 20px;float: left;'>
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="page2"
+              @current-change='sizeChange2'>
+            </el-pagination>
+          </el-col>
 	    </el-col>
     </el-row>
   </div>
@@ -135,13 +153,25 @@ export default {
       treat: '已处理',
       showTreat: true,
       tableData1: [],
-      tableData2: []
+      tableData2: [],
+      tableData1_: [],
+      tableData2_: [],
+      page1: 10,
+      page2: 10,
+      loading1: false,
+      loading2: false
     }
   },
   methods: {
   	getMsg (){
   		this.tableData1 = [];
   		this.tableData2 = [];
+      this.tableData1_ = [];
+      this.tableData2_ = [];
+      this.page1 = 10;
+      this.page2 = 10;
+      this.loading1 = true;
+      this.loading2 = true;
   		axios.get('initiativeMsg/getMsg').then(function(res){
   			if(res.data.status == '1'){
   				if(res.data.result.length == 0){
@@ -157,6 +187,17 @@ export default {
   							msgObj.type = msgType;
   							msgObj.date = msgObj.date.slice(0,10);
   							this.tableData2.push(msgObj);
+                this.tableData2.reverse();
+                this.page2 = this.tableData2.length%8 == 0?Math.floor(this.tableData2.length/8)*10:Math.floor(this.tableData2.length/8)*10+10;
+                if(this.tableData2.length > 8){
+                  for(let i=0;i<8;i++){
+                    this.tableData2_.push(this.tableData2[i]);
+                  }
+                }else{
+                  for(let i=0;i<this.tableData2.length;i++){
+                    this.tableData2_.push(this.tableData2[i]);
+                  }
+                }
   						}else{
   							switch(res.data.result[i].type){
   								case 0:
@@ -197,6 +238,21 @@ export default {
   							};
   						}
   					}
+            this.tableData1.reverse();
+            setTimeout(()=>{
+              this.loading1 = false;
+              this.loading2 = false;
+              this.page1 = this.tableData1.length%8 == 0?Math.floor(this.tableData1.length/8)*10:Math.floor(this.tableData1.length/8)*10+10;
+              if(this.tableData1.length > 8){
+                for(let i=0;i<8;i++){
+                  this.tableData1_.push(this.tableData1[i]);
+                }
+              }else{
+                for(let i=0;i<this.tableData1.length;i++){
+                  this.tableData1_.push(this.tableData1[i]);
+                }
+              }
+            },400);
   				}
   			}else{
   				this.$message.error(`获取异常:${res.data.msg}，请联系管理员`);
@@ -267,7 +323,41 @@ export default {
             message: '已取消删除'
           });          
         });
-	}
+	},
+  sizeChange1 (index){
+    this.loading1 = true;
+    setTimeout(()=>{
+      this.loading1 = false;
+      if(index*8 > this.tableData1.length){
+        this.tableData1_ = [];
+        for(let i=(index-1)*8,j=0;i<this.tableData1.length;i++,j++){
+          this.tableData1_[j] = this.tableData1[i];
+        }
+      }else{
+        this.tableData1_ = [];
+        for(let i=(index-1)*8,j=0;i<(index-1)*8+8;i++,j++){
+          this.tableData1_[j] = this.tableData1[i];
+        }
+      }
+    },400);
+  },
+  sizeChange2 (index){
+    this.loading2 = true;
+    setTimeout(()=>{
+      this.loading2 = false;
+      if(index*8 > this.tableData2.length){
+        this.tableData2_ = [];
+        for(let i=(index-1)*8,j=0;i<this.tableData2.length;i++,j++){
+          this.tableData2_[j] = this.tableData2[i];
+        }
+      }else{
+        this.tableData2_ = [];
+        for(let i=(index-1)*8,j=0;i<(index-1)*8+8;i++,j++){
+          this.tableData2_[j] = this.tableData2[i];
+        }
+      }
+    },400)
+  }
   },
   watch: {
   	'treat': function(newVal){
