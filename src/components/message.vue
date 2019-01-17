@@ -179,6 +179,8 @@ export default {
 			          message: '没有消息哟',
 			          type: 'warning'
 			        });
+            this.loading1 = false;
+            this.loading2 = false;
   				}else{
   					for(var i=0; i<res.data.result.length ; i++){
   						if(res.data.result[i].type == -1){
