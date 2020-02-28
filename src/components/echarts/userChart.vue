@@ -7,7 +7,7 @@
       <el-col :span='24' v-if='!showChart'>
         <el-col :span='4' v-for='user in users' style='margin-left: 10px;'>
           <el-card :body-style="{ padding: '0px' }" shadow="hover">
-            <img src="../../../static/img/user.jpg" class="image">
+            <img :src="user.headImg" class="image">
             <div style="padding: 8px;cursor: pointer;" @click='open(user.userId)'>
               <span style='font-size: 14px;'>{{user.name}}</span>
               <div class="bottom clearfix">
@@ -35,54 +35,52 @@ export default {
   data () {
     return {
       showChart: false,
-      timeOption: {
+      // timeOption: {
       	
-      },
-      users: [{
-        userId: '123',
-        phone: '1234',
-        name: '陈于希',
-        image: '1234.jpg'
-      },{
-        userId: '123',
-        phone: '1234',
-        name: '陈1希',
-        image: '1234.jpg'
-      },{
-        userId: '123',
-        phone: '1234',
-        name: '陈2希',
-        image: '1234.jpg'
-      },{
-        userId: '123',
-        phone: '1234',
-        name: '陈3希',
-        image: '1234.jpg'
-      }]
+      // },
+      users: [],
+      id: '',
+      id1: '',
+      key: ''
     }
   },
   methods: {
-     drawTime(){
-        // var myChart = this.$echarts.init(document.getElementById('time'));
-        // 绘制图表
-        // myChart.showLoading();
-        // myChart.setOption(this.timeOption);
-        // myChart.hideLoading();
+     getUser(){
+        if(this.showChart){
+          return;
+        }else{
+          this.id = this.$route.query.id;
+          axios.get('department/getStaffList',{
+            params: {
+              id: this.id
+            }
+          }).then(function(res){
+            if(res.data.status == '1'){
+              this.users = res.data.result
+            }else{
+              this.$message.error(`错误：${res.data.msg},获取员工失败，请联系管理员`);
+            }
+          }.bind(this)).catch(function(err){
+            this.$message.error('服务器异常，获取员工失败，请联系管理员');
+          }.bind(this));
+        }
       },
       open (key){
         this.showChart = true;
-        this.$router.push({name: 'userOneChart', params :{id: key}});
+        this.key = key;
+        this.$router.push({name: 'userOneChart', query :{userId: key,depdId: this.id}});
       },
       back (){
         this.showChart = false;
-        this.$router.push('/chief/record/userChart');
+        // this.$router.push('/chief/record/userChart');
+        this.$router.push({name: 'userChart', query :{id: this.id}});
       }
   },
   mounted (){
-      // this.drawTime();
+      this.getUser();
   },
   watch: {
-      
+      "$route": 'getUser'
   }
 }
 </script>

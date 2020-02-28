@@ -13,50 +13,76 @@ export default {
   name: 'userOneChart',
   data () {
     return {
-      userOption: {
-        title: { 
-          text: '成员打卡时间记录',
-          left:'center'
-        },
-        toolbox: {
-            show: true,
-            feature: {
-                dataZoom: {
-                    yAxisIndex: 'none'
-                },
-                dataView: {readOnly: false},
-                magicType: {type: ['line', 'bar']},
-                restore: {},
-                saveAsImage: {}
-            },
-            right: '80px'
-        },
-        xAxis: {
-            type: 'category',
-            data: ['2018-10-01', '2018-10-02', '2018-10-03', '2018-10-04', '2018-10-05', '2018-10-06', '2018-10-07','2018-10-08', '2018-10-09', '2018-10-10', '2018-10-11', '2018-10-12', '2018-10-13', '2018-10-14'],
-            name: '日期'
-        },
-        yAxis: {
-            type: 'value',
-            name: '距离8:30还有'
-        },
-        series: [{
-            data: [0,2,6,8,8,4,16,14,12,18,20,20,22,24,28],
-            type: 'line',
-            smooth: true
-        }]
-      }
+      
     }
   },
   methods: {
     drawLine(){
         // 基于准备好的dom，初始化echarts实例
-        let myChart = this.$echarts.init(document.getElementById('myChart'))
+        let myChart = this.$echarts.init(document.getElementById('myChart'));
+
+        axios.get('departmentRecord/userHistory',{
+            params: {
+              userId: this.$route.query.userId,
+              depdId: this.$route.query.depdId
+            }
+          }).then(function(res){
+            if(res.data.status == '1'){
+              // myChart.setOption(this.userOption);
+              let result = res.data.result;
+              let arr1 = [],arr2  = [];
+              for(let i=0; i<result.length; i++){
+                arr1.push(result[i].clockDate);
+                arr2.push(result[i].clockTime.split(':').join(''));
+              }
+              console.log(`${arr1}:${arr2}`);
+              let userOption = {
+                title: { 
+                  text: '成员打卡时间记录',
+                  left:'center'
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none'
+                        },
+                        dataView: {readOnly: false},
+                        magicType: {type: ['line', 'bar']},
+                        restore: {},
+                        saveAsImage: {}
+                    },
+                    right: '80px'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: arr1,
+                    name: '日期'
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '打卡时间'
+                },
+                series: [{
+                    data: arr2,
+                    type: 'line',
+                    smooth: true
+                }]
+              }
+              myChart.setOption(userOption);
+            }else{
+              this.$message.error(`错误：${res.data.msg},获取员工失败，请联系管理员`);
+            }
+          }.bind(this)).catch(function(err){
+            this.$message.error('服务器异常，获取员工失败，请联系管理员');
+          }.bind(this));
+
         // 绘制图表
         myChart.setOption(this.userOption);
     }
   },
   mounted (){
+    console.log(`userId:${this.$route.query.userId}depdId:${this.$route.query.depdId}`)
     this.drawLine();
     // console.log(this.$route.params.id);
   },

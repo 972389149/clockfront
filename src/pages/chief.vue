@@ -81,7 +81,7 @@ export default {
 		          type: 'success'
 		        });
 		    	sessionStorage.setItem("Login", false);
-          sessionStorage.setItem("name", '');
+          		sessionStorage.setItem("name", '');
 		    	this.$router.push({name:'login'});
   			}else{
   				 this.$notify.error({

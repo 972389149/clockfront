@@ -17,7 +17,7 @@
     		  <el-col :span="8">
     		  	<div>
     		  		<div class='control'>
-    		  			<el-select v-model="value" clearable placeholder="请选择">
+    		  			<el-select v-model="value" clearable placeholder="请选择" :disabled='canSelect'>
                   <el-option
                     v-for="item in options"
                     :key="item.value"
@@ -30,16 +30,19 @@
     		  </el-col>
   		  </el-row>
 	    </el-col>
-      <el-col :span='21' style='margin-top: 20px;text-align: center;'>
+      <el-col :span='21'style='margin-top: 20px;' v-if='show_'>
+        <el-tag type="info">请先选择一个部门</el-tag>
+      </el-col>
+      <el-col :span='21' style='margin-top: 20px;text-align: center;' v-if='!show_'>
         <div v-show='false'>
-          <router-link id='num'  :to ="{name:'numberChart'}">1</router-link>
-          <router-link id='plac' :to ="{name:'placeChart'}">2</router-link>
-          <router-link id='user'  :to ="{name:'userChart'}">3</router-link>
+          <router-link id='num'  :to ="{name:'numberChart', query:{id:value}}"></router-link>
+          <router-link id='plac' :to ="{name:'placeChart', query:{id:value}}"></router-link>
+          <router-link id='user'  :to ="{name:'userChart', query:{id:value}}"></router-link>
         </div>
         <router-view></router-view>
       </el-col>
       <el-col :span='3'>
-          <el-tabs tab-position="right" style="height: 100%;" v-model='activeName' @tab-click='to'>
+          <el-tabs tab-position="right" style="height: 100%;" v-model='activeName' @tab-click='to' v-if='!show_'>
             <el-tab-pane label="打卡人数记录" name='number'></el-tab-pane>
             <el-tab-pane label="打卡地点记录" name='place'> </el-tab-pane>
             <el-tab-pane label="成员打卡记录" name='user'></el-tab-pane>
@@ -57,36 +60,20 @@ export default {
       bread: ['我的工作台','记录'],
       options: [],
       value: '',
+      key: '',
+      label: '',
       number: true,
       place: false,
       time: false,
       activeName: 'number',
-      numberOption: {
-        title: { 
-          text: '部门打卡',
-          left:'center'
-        },
-        tooltip: {},
-        xAxis: {
-            type: 'category',
-            data: ['2018-10-01', '2018-10-02', '2018-10-03', '2018-10-04', '2018-10-05', '2018-10-06', '2018-10-07','2018-10-08', '2018-10-09', '2018-10-10', '2018-10-11', '2018-10-12', '2018-10-13', '2018-10-14'],
-            name: '日期'
-        },
-        yAxis: {
-            type: 'value',
-            name: '人数'
-        },
-        series: [{
-            data: [10, 9, 8, 7, 6, 2, 4, 10, 9, 9, 7, 6, 6, 8],
-            type: 'line'
-        }]
-      },
       placeOption: {
 
       },
       timeOption: {
 
-      }
+      },
+      show_: true,
+      canSelect: false
     }
   },
   methods: {
@@ -106,6 +93,8 @@ export default {
                 obj_.push(obj);
               }
               this.options = obj_;
+              // console.log(this.value)
+              // this.$router.push({name:'numberChart',query:{id:this.value}});
             }
           }else{
             this.$message.error(`获取部门列表失败，请联系管理员。`);
@@ -115,6 +104,7 @@ export default {
         }.bind(this));
       },
       to (){
+        this.canSelect = false;
         switch(this.activeName){
           case 'number':
             document.getElementById('num').click();
@@ -123,16 +113,46 @@ export default {
             document.getElementById('plac').click();
             break;
           case 'user':
+            this.canSelect = true;
             document.getElementById('user').click();
             break;
         }
       }
+      // async getMsg (){
+      //   let msg = await new Promise((resolve, reject)=>{
+      // }
     },
     mounted (){
       this.getGroup();
-      this.$router.push({name:'numberChart'});
     },
     watch: {
+      value (){
+        if(this.value == ''){
+          this.show_ = true
+          // this.getMsg()
+        }else{
+          // console.log(`改变值${this.value}`)
+          this.show_ = true;
+          switch(this.activeName){
+            case 'number':
+              // console.log('数量')
+              this.$router.push({name:'numberChart',query:{id:this.value}});
+              break;
+            case 'place':
+              // console.log('位置')
+              this.$router.push({name:'placeChart',query:{id:this.value}});
+              break;
+            case 'user':
+              // console.log('用户')
+              this.$router.push({name:'userChart',query:{id:this.value}});
+              break;
+          }
+          this.show_ = false;
+        }
+      },
+      activeName (){
+        // console.log(this.activeName);
+      }
 
     }
 }
